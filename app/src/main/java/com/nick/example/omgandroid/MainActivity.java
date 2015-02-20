@@ -1,6 +1,7 @@
 package com.nick.example.omgandroid;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
@@ -15,21 +16,23 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
 
 public class MainActivity extends ActionBarActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
+    private static final String PREFS = "prefs";
+    private static final String PREF_NAME = "name";
     TextView mainTextView;
     Button mainButton;
     EditText mainEditText;
-
     ListView mainListView;
     ArrayAdapter mArrayAdapter;
     ArrayList mNameList = new ArrayList();
-
     ShareActionProvider mShareActionProvider;
+    SharedPreferences mSharedPreferences;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +68,24 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         // 6. The text you'd like to share has changed,
         // and you need to update
         setShareIntent();
+
+        // 7. Greet the user, or ask for their name if new
+        displayWelcome();
+    }
+
+    private void displayWelcome() {
+        // Access the device's key-value storage
+        mSharedPreferences = getSharedPreferences(PREFS, MODE_PRIVATE);
+
+        // Read the user's name,
+        // or an empty string if nothing found
+        String name = mSharedPreferences.getString(PREF_NAME, "");
+
+        if (name.length() > 0) {
+
+            // If the name is valid, display a Toast welcoming them
+            Toast.makeText(this, "Welcome back, " + name + "!", Toast.LENGTH_LONG).show();
+        }
     }
 
 
