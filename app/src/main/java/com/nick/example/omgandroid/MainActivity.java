@@ -1,6 +1,7 @@
 package com.nick.example.omgandroid;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -13,7 +14,6 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -39,10 +39,12 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
     Button mainButton;
     EditText mainEditText;
     ListView mainListView;
-    ArrayAdapter mArrayAdapter;
     ArrayList mNameList = new ArrayList();
     ShareActionProvider mShareActionProvider;
     SharedPreferences mSharedPreferences;
+    JSONAdapter mJSONAdapter;
+    ProgressDialog mDialog;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,13 +65,7 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
         // 4. Access the ListView
         mainListView = (ListView) findViewById(R.id.main_listview);
 
-        // Create an ArrayAdapter for the ListView
-        mArrayAdapter = new ArrayAdapter(this,
-                android.R.layout.simple_list_item_1,
-                mNameList);
 
-        // Set the ListView to use the ArrayAdapter
-        mainListView.setAdapter(mArrayAdapter);
 
         // 5. Set this activity to react to list items being pressed
         mainListView.setOnItemClickListener(this);
@@ -80,7 +76,18 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
         // 7. Greet the user, or ask for their name if new
         displayWelcome();
+
+        // 10. Create a JSONAdapter for the ListView
+        mJSONAdapter = new JSONAdapter(this, getLayoutInflater());
+
+// Set the ListView to use the ArrayAdapter
+        mainListView.setAdapter(mJSONAdapter);
+
+        mDialog = new ProgressDialog(this);
+        mDialog.setMessage("Searching for Book");
+        mDialog.setCancelable(false);
     }
+
 
     private void displayWelcome() {
         // Access the device's key-value storage
@@ -151,6 +158,8 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
         // Create a client to perform networking
         AsyncHttpClient client = new AsyncHttpClient();
+        // Show ProgressDialog to inform user that a task in the background is occurring
+        mDialog.show();
 
         // Have the client get a JSONArray of data
         // and define how to respond
@@ -159,16 +168,20 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
                     @Override
                     public void onSuccess(JSONObject jsonObject) {
+                        // 11. Dismiss the ProgressDialog
+                        mDialog.dismiss();
                         // Display a "Toast" message
                         // to announce your success
                         Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_LONG).show();
 
-                        // 8. For now, just log results
-                        Log.d("omg android", jsonObject.toString());
+                        // update the data in your custom method.
+                        mJSONAdapter.updateData(jsonObject.optJSONArray("docs"));
                     }
 
                     @Override
                     public void onFailure(int statusCode, Throwable throwable, JSONObject error) {
+                        // 11. Dismiss the ProgressDialog
+                        mDialog.dismiss();
                         // Display a "Toast" message
                         // to announce the failure
                         Toast.makeText(getApplicationContext(), "Error: " + statusCode + " " + throwable.getMessage(), Toast.LENGTH_LONG).show();
@@ -229,14 +242,14 @@ public class MainActivity extends ActionBarActivity implements View.OnClickListe
 
         // Also add that value to the list shown in the ListView
         mNameList.add(mainEditText.getText().toString());
-        mArrayAdapter.notifyDataSetChanged();
+        mJSONAdapter.notifyDataSetChanged();
+        // 9. Take what was typed into the EditText and use in search
+        queryBooks(mainEditText.getText().toString());
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        // Log the item's position and contents
-        // to the console in Debug
-        Log.d("omg android", position + ": " + mNameList.get(position));
+
     }
 
     /*@Override
