@@ -6,6 +6,9 @@
         android:minSdkVersion="16"
         android:targetSdkVersion="21" />
 
+    <!-- NEED TO ADD TO BE ABLE TO GO ONLINE AND GET DATA -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_books"
